@@ -23,8 +23,11 @@
   },
   "homepage": "https://github.com/sp8190/uniswap-swap-ui#readme",
   "dependencies": {
+    "@tanstack/react-query": "^4.24.9",
+    "@tanstack/react-query-devtools": "^4.24.9",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "styled-components": "^5.3.6"
   },
   "devDependencies": {
     "@babel/cli": "^7.20.7",
@@ -34,6 +37,7 @@
     "@babel/preset-typescript": "^7.18.6",
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.11",
+    "@types/styled-components": "^5.1.26",
     "babel-loader": "^9.1.2",
     "core-js": "^3.28.0",
     "css-loader": "^6.7.3",
