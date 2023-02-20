@@ -23,6 +23,9 @@
   },
   "homepage": "https://github.com/sp8190/uniswap-swap-ui#readme",
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.3.0",
+    "@fortawesome/free-solid-svg-icons": "^6.3.0",
+    "@fortawesome/react-fontawesome": "^0.2.0",
     "@tanstack/react-query": "^4.24.9",
     "@tanstack/react-query-devtools": "^4.24.9",
     "react": "^18.2.0",

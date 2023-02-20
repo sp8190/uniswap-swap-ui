@@ -2,18 +2,29 @@ import styled from "styled-components";
 
 export default function Navigator() {
   const HeaderBlock = styled.div`
-    position: fixed;
+    display: table;
+    table-layout: fixed;
     width: 100%;
-    backgroud: white;
+    height: 50px;
+    background: #ddd;
+    text-align: center;
     box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.08);
+
+    .HeaderBlock_item {
+      display: table-cell;
+      vertical-align: middle;
+    }
   `;
+
   const Spacer = styled.div`
-    height: 7rem;
+    height: 20px;
   `;
 
   return (
     <>
-      <HeaderBlock>123</HeaderBlock>
+      <HeaderBlock>
+        <span className="HeaderBlock_item"> Navigator </span>
+      </HeaderBlock>
       <Spacer />
     </>
   );
