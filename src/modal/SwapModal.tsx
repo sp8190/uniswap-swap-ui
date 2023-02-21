@@ -1,7 +1,9 @@
-import { PropsWithChildren } from "react";
+import { PropsWithChildren, useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faX, faPenToSquare } from "@fortawesome/free-solid-svg-icons";
-import { useState } from "react";
+// import { getCoinList } from "../api/Api";
+// import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
 import styled from "styled-components";
 
 interface ModalDefaultType {
@@ -24,6 +26,30 @@ export default function Modal({
   ) => {
     setText(e.target.value);
   };
+
+  const [data, setData] = useState<object[]>([]);
+
+  useEffect(() => {
+    axios
+      .get(
+        "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=false"
+      )
+      .then((res) => {
+        setData(res.data);
+      });
+  }, []);
+
+  // const { data, isLoading, isError } = useQuery<GetCoinsProps>(
+  //   ["coins"],
+  //   getCoinList
+  // );
+  // if (isLoading) {
+  //   return <h4>Loading</h4>;
+  // }
+
+  // if (isError) {
+  //   return <h4>Something went wrong !!</h4>;
+  // }
   return (
     <ModalWrapper>
       <DialogBox>
@@ -51,14 +77,15 @@ export default function Modal({
           />
         </SearchBox>
         <SearchHistory>{/* 검색 기록 */}</SearchHistory>
-        <CoinList>{/* 토큰 리스트 */}</CoinList>
+        <CoinList>
+          {data.map((coin) => (
+            <div key={coin.id} className="eachList">
+              {coin.symbol.toUpperCase()}
+            </div>
+          ))}
+        </CoinList>
         <CoinManage>
-          <div
-            onClick={() => {
-              alert("준비중입니다.");
-            }}
-            className="listManage"
-          >
+          <div onClick={() => console.log(data[0])} className="listManage">
             <FontAwesomeIcon icon={faPenToSquare} />
             <span>토큰 목록 관리</span>
           </div>
@@ -140,12 +167,29 @@ const SearchHistory = styled.div`
   width: 100%;
   height: 100px;
   border-bottom: 1px solid;
+  margin-bottom: 3px;
 `;
 const CoinList = styled.div`
-  display: flex;
   width: 100%;
   height: 300px;
   border-bottom: 1px solid;
+  overflow-x: hidden;
+  overflow-y: auto;
+  .eachList {
+    display: flex;
+    border: 1px solid #000000;
+    border-radius: 5px;
+    background: #908790;
+    font-size: 16px;
+    color: #ffffff;
+    text-indent: 16px;
+    align-items: center;
+    width: 100%;
+    height: 50px;
+  }
+  div:hover {
+    background: #5babab;
+  }
 `;
 const CoinManage = styled.span`
   display: flex;

@@ -1,22 +1,37 @@
 import SwapModal from "../modal/SwapModal";
 import styled from "styled-components";
-import axios from "axios";
+import { getCoinPrice } from "../api/Api";
 import { useQuery } from "@tanstack/react-query";
 import { faGear, faArrowDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState, useCallback } from "react";
 
 type Information = { first: undefined | number; second: undefined | number };
-type CoinInfo = { id: string };
-const url = `https://api.coingecko.com/api/v3/simple/price?vs_currencies=USD&ids=`;
+type CoinInfo = { id: string; name: string };
+
+interface GetCoinsPrice {
+  results: CoinsPrice[];
+}
+
+interface CoinsPrice {
+  id: number;
+  symbol: object;
+}
 
 export default function SwapUI() {
   const [isOpenModal, setOpenModal] = useState<boolean>(false);
   const [isNumModal, setNumModal] = useState<boolean>(false);
   const [isCoin, setCoin] = useState<CoinInfo[]>([
-    { id: "DAI" },
-    { id: "USDC" },
+    { id: "DAI", name: "DAI" },
+    { id: "usd-coin", name: "USDC" },
   ]);
+  const { data: oneData } = useQuery<GetCoinsPrice>(["coin1"], () =>
+    getCoinPrice(isCoin[0].id)
+  );
+  const { data: twoData } = useQuery<GetCoinsPrice>(["coin2"], () =>
+    getCoinPrice(isCoin[1].id)
+  );
+
   const [isNumber, setNumber] = useState<Information>({
     first: undefined,
     second: undefined,
@@ -26,9 +41,9 @@ export default function SwapUI() {
   }, [isOpenModal]);
 
   // 바꿔야함
-  const nameChange = useCallback(() => {
+  const nameChange = () => {
     setOpenModal(!isOpenModal);
-  }, [isOpenModal]);
+  };
 
   // const axiosFirstCoin = () => {
   //   return axios.get(url + isCoin[0].id);
@@ -80,8 +95,8 @@ export default function SwapUI() {
           <FontAwesomeIcon
             icon={faGear}
             className="right_icon"
-            // onClick={() => alert("준비 중입니다")}
-            onClick={() => alert(isCoin)}
+            onClick={() => alert("준비 중입니다")}
+            // onClick={() => console.log(twoData)}
             // onClick={() => alert(isNumber.first + " " + isNumber.second)}
           />
         </SwapText>
@@ -91,7 +106,6 @@ export default function SwapUI() {
               id="first"
               type="number"
               className="InputNumber"
-              step="0.0000000001"
               placeholder="0.0"
               value={first}
               onChange={NumberChange}
@@ -104,7 +118,7 @@ export default function SwapUI() {
               }}
               className="openModal"
             >
-              <span className="text">{isCoin[0].id} ▽</span>
+              <span className="text">{isCoin[0].name} ▽</span>
             </div>
           </div>
           <div className="arrowDown">
@@ -115,7 +129,6 @@ export default function SwapUI() {
               id="second"
               type="number"
               className="InputNumber"
-              step="0.0000000001"
               placeholder="0.0"
               value={second}
               onChange={NumberChange}
@@ -135,7 +148,7 @@ export default function SwapUI() {
               }}
               className="openModal down"
             >
-              <span className="text">{isCoin[1].id} ▽</span>
+              <span className="text">{isCoin[1].name} ▽</span>
             </div>
           </div>
         </CoinBox>
@@ -260,6 +273,7 @@ const SwapButton = styled.button`
   border-radius: 15px;
   color: #ffffff;
   background: #5babab;
+  cursor: pointer;
 `;
 
 const NoSwapButton = styled.button`
