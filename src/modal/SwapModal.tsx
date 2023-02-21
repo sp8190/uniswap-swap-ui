@@ -3,30 +3,27 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faX, faPenToSquare } from "@fortawesome/free-solid-svg-icons";
 // import { getCoinList } from "../api/Api";
 // import { useQuery } from "@tanstack/react-query";
+import History from "./SearchHistory";
 import axios from "axios";
 import styled from "styled-components";
 
+type CoinInfo = { name: string; symbol: string };
 interface ModalDefaultType {
   onClickToggleModal: () => void;
-  nameChange: () => void;
+  setCoin: React.Dispatch<React.SetStateAction<CoinInfo[]>>;
+  isCoin: Object;
   children: boolean;
 }
 
 export default function Modal({
   onClickToggleModal,
-  nameChange,
+  setCoin,
+  isCoin,
   children,
 }: PropsWithChildren<ModalDefaultType>) {
   // children === true 위에 버튼
   // children === false 아래에 버튼
   const [isText, setText] = useState<string>("");
-
-  const TextChange = (
-    e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
-  ) => {
-    setText(e.target.value);
-  };
-
   const [data, setData] = useState<object[]>([]);
 
   useEffect(() => {
@@ -39,17 +36,37 @@ export default function Modal({
       });
   }, []);
 
-  // const { data, isLoading, isError } = useQuery<GetCoinsProps>(
-  //   ["coins"],
-  //   getCoinList
-  // );
-  // if (isLoading) {
-  //   return <h4>Loading</h4>;
-  // }
+  const TextChange = (
+    e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
+  ) => {
+    setText(e.target.value);
+  };
+  const ChangeCoin = (e1: string, e2: string) => {
+    let todos = localStorage.getItem("coin");
+    if (todos === null) {
+      let symbol = JSON.stringify([e2]);
+      localStorage.setItem("coin", symbol);
+    } else {
+      let newtodos = JSON.parse(todos);
+      newtodos.push(e2);
+      if (newtodos.length > 7) {
+        newtodos.shift();
+      }
+      localStorage.setItem("coin", JSON.stringify(newtodos));
+    }
+    if (children === true) {
+      setCoin([
+        { name: e1, symbol: e2 },
+        { name: isCoin[1].name, symbol: isCoin[1].symbol },
+      ]);
+    } else {
+      setCoin([
+        { name: isCoin[0].name, symbol: isCoin[0].symbol },
+        { name: e1, symbol: e2 },
+      ]);
+    }
+  };
 
-  // if (isError) {
-  //   return <h4>Something went wrong !!</h4>;
-  // }
   return (
     <ModalWrapper>
       <DialogBox>
@@ -76,16 +93,32 @@ export default function Modal({
             onChange={TextChange}
           />
         </SearchBox>
-        <SearchHistory>{/* 검색 기록 */}</SearchHistory>
+        <History></History>
         <CoinList>
-          {data.map((coin) => (
-            <div key={coin.id} className="eachList">
-              {coin.symbol.toUpperCase()}
-            </div>
-          ))}
+          {data
+            .filter(
+              (coin) =>
+                coin.name.toLowerCase().indexOf(isText) !== -1 ||
+                coin.symbol.toLowerCase().indexOf(isText) !== -1
+            )
+            .map((coin) => (
+              <div
+                key={coin.id}
+                className="eachList"
+                onClick={() => {
+                  ChangeCoin(coin.name, coin.symbol.toUpperCase());
+                  if (onClickToggleModal) {
+                    onClickToggleModal();
+                  }
+                }}
+              >
+                <div>{coin.symbol.toUpperCase()}</div>
+                <div>{coin.name}</div>
+              </div>
+            ))}
         </CoinList>
         <CoinManage>
-          <div onClick={() => console.log(data[0])} className="listManage">
+          <div onClick={() => console.log(isCoin)} className="listManage">
             <FontAwesomeIcon icon={faPenToSquare} />
             <span>토큰 목록 관리</span>
           </div>
@@ -160,14 +193,6 @@ const SearchBox = styled.div`
     color: #000000;
     background: #ffffff;
   }
-`;
-
-const SearchHistory = styled.div`
-  display: flex;
-  width: 100%;
-  height: 100px;
-  border-bottom: 1px solid;
-  margin-bottom: 3px;
 `;
 const CoinList = styled.div`
   width: 100%;

@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState, useCallback } from "react";
 
 type Information = { first: undefined | number; second: undefined | number };
-type CoinInfo = { id: string; name: string };
+type CoinInfo = { name: string; symbol: string };
 
 interface GetCoinsPrice {
   results: CoinsPrice[];
@@ -22,14 +22,14 @@ export default function SwapUI() {
   const [isOpenModal, setOpenModal] = useState<boolean>(false);
   const [isNumModal, setNumModal] = useState<boolean>(false);
   const [isCoin, setCoin] = useState<CoinInfo[]>([
-    { id: "DAI", name: "DAI" },
-    { id: "usd-coin", name: "USDC" },
+    { name: "DAI", symbol: "DAI" },
+    { name: "usd-coin", symbol: "USDC" },
   ]);
   const { data: oneData } = useQuery<GetCoinsPrice>(["coin1"], () =>
-    getCoinPrice(isCoin[0].id)
+    getCoinPrice(isCoin[0].name)
   );
   const { data: twoData } = useQuery<GetCoinsPrice>(["coin2"], () =>
-    getCoinPrice(isCoin[1].id)
+    getCoinPrice(isCoin[1].name)
   );
 
   const [isNumber, setNumber] = useState<Information>({
@@ -41,15 +41,15 @@ export default function SwapUI() {
   }, [isOpenModal]);
 
   // 바꿔야함
-  const nameChange = () => {
-    setOpenModal(!isOpenModal);
-  };
+  // const nameChange = (e: string) => {
+  //   alert(1);
+  // };
 
   // const axiosFirstCoin = () => {
-  //   return axios.get(url + isCoin[0].id);
+  //   return axios.get(url + isCoin[0].name);
   // };
   // const axiosSecondCoin = () => {
-  //   return axios.get(url + isCoin[1].id);
+  //   return axios.get(url + isCoin[1].name);
   // };
 
   // const firstCoin = useQuery(["first"], axiosFirstCoin);
@@ -95,8 +95,8 @@ export default function SwapUI() {
           <FontAwesomeIcon
             icon={faGear}
             className="right_icon"
-            onClick={() => alert("준비 중입니다")}
-            // onClick={() => console.log(twoData)}
+            // onClick={() => alert("준비 중입니다")}
+            onClick={() => console.log(isCoin)}
             // onClick={() => alert(isNumber.first + " " + isNumber.second)}
           />
         </SwapText>
@@ -118,7 +118,7 @@ export default function SwapUI() {
               }}
               className="openModal"
             >
-              <span className="text">{isCoin[0].name} ▽</span>
+              <span className="text">{isCoin[0].symbol} ▽</span>
             </div>
           </div>
           <div className="arrowDown">
@@ -136,7 +136,8 @@ export default function SwapUI() {
             {isOpenModal && (
               <SwapModal
                 onClickToggleModal={onClickToggleModal}
-                nameChange={nameChange}
+                isCoin={isCoin}
+                setCoin={setCoin}
               >
                 {isNumModal}
               </SwapModal>
@@ -148,7 +149,7 @@ export default function SwapUI() {
               }}
               className="openModal down"
             >
-              <span className="text">{isCoin[1].name} ▽</span>
+              <span className="text">{isCoin[1].symbol} ▽</span>
             </div>
           </div>
         </CoinBox>
