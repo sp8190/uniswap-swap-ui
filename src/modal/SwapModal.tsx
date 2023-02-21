@@ -118,7 +118,7 @@ export default function Modal({
             ))}
         </CoinList>
         <CoinManage>
-          <div onClick={() => console.log(isCoin)} className="listManage">
+          <div onClick={() => alert("준비 중입니다")} className="listManage">
             <FontAwesomeIcon icon={faPenToSquare} />
             <span>토큰 목록 관리</span>
           </div>

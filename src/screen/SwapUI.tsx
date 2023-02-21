@@ -25,11 +25,16 @@ export default function SwapUI() {
     { name: "DAI", symbol: "DAI" },
     { name: "usd-coin", symbol: "USDC" },
   ]);
-  const { data: oneData } = useQuery<GetCoinsPrice>(["coin1"], () =>
-    getCoinPrice(isCoin[0].name)
+  //빠르게
+  const { data: oneData } = useQuery<GetCoinsPrice>(
+    ["coin1"],
+    () => getCoinPrice(isCoin[0].name)
+    // { enabled: true, staleTime: 5000, refetchInterval: 10000 }
   );
-  const { data: twoData } = useQuery<GetCoinsPrice>(["coin2"], () =>
-    getCoinPrice(isCoin[1].name)
+  const { data: twoData } = useQuery<GetCoinsPrice>(
+    ["coin2"],
+    () => getCoinPrice(isCoin[1].name)
+    // { enabled: true, staleTime: 5000, refetchInterval: 10000 }
   );
 
   const [isNumber, setNumber] = useState<Information>({
@@ -40,36 +45,59 @@ export default function SwapUI() {
     setOpenModal(!isOpenModal);
   }, [isOpenModal]);
 
-  // 바꿔야함
-  // const nameChange = (e: string) => {
-  //   alert(1);
-  // };
-
-  // const axiosFirstCoin = () => {
-  //   return axios.get(url + isCoin[0].name);
-  // };
-  // const axiosSecondCoin = () => {
-  //   return axios.get(url + isCoin[1].name);
-  // };
-
-  // const firstCoin = useQuery(["first"], axiosFirstCoin);
-  // const secondCoin = useQuery(["second"], axiosSecondCoin);
-
   const { first, second } = isNumber;
 
+  //계산식 추가 Object.values(twoData)[0].usd
   const NumberChange = (
     e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
   ) => {
-    if (Number(e.target.value) === 0 || e.target.value === undefined) {
-      setNumber({
-        ...isNumber,
-        [e.target.id]: undefined,
-      });
-    } else {
-      setNumber({
-        ...isNumber,
-        [e.target.id]: Number(e.target.value),
-      });
+    let cost = 0;
+
+    // 윗 칸에 숫자 입력 할 때
+    if (e.target.id === "first") {
+      if (/^[\d]*\.?[\d]{0,10}$/.test(e.target.value)) {
+        if (Number(e.target.value) === 0 || e.target.value === undefined) {
+          setNumber({
+            ...isNumber,
+            [e.target.id]: undefined,
+            ["second"]: 0,
+          });
+        } else {
+          cost = Object.values(oneData)[0].usd * Number(e.target.value);
+          setNumber({
+            ...isNumber,
+            [e.target.id]: Number(e.target.value),
+            ["second"]: Number(
+              (cost / Object.values(twoData)[0].usd).toFixed(10)
+            ),
+          });
+        }
+      } else {
+        return false;
+      }
+    } // 밑 칸에 숫자 입력 할 때
+    else {
+      if (/^[\d]*\.?[\d]{0,10}$/.test(e.target.value)) {
+        if (Number(e.target.value) === 0 || e.target.value === undefined) {
+          setNumber({
+            ...isNumber,
+            [e.target.id]: undefined,
+            ["first"]: 0,
+          });
+        } else {
+          cost = Object.values(twoData)[0].usd * Number(e.target.value);
+          setNumber({
+            ...isNumber,
+            [e.target.id]: Number(e.target.value),
+            ["first"]: Number(
+              Math.round(cost / Object.values(oneData)[0].usd).toFixed(10)
+            ),
+          });
+        }
+      } else {
+        console.log(e.target.value);
+        return false;
+      }
     }
   };
 
@@ -95,9 +123,7 @@ export default function SwapUI() {
           <FontAwesomeIcon
             icon={faGear}
             className="right_icon"
-            // onClick={() => alert("준비 중입니다")}
-            onClick={() => console.log(isCoin)}
-            // onClick={() => alert(isNumber.first + " " + isNumber.second)}
+            onClick={() => alert("준비 중입니다")}
           />
         </SwapText>
         <CoinBox>
@@ -110,7 +136,13 @@ export default function SwapUI() {
               value={first}
               onChange={NumberChange}
             />
-
+            {first ? (
+              <div className="InputDollar">
+                ${(Object.values(oneData)[0].usd * first).toFixed(10)}
+              </div>
+            ) : (
+              ""
+            )}
             <div
               onClick={() => {
                 onClickToggleModal();
@@ -133,6 +165,13 @@ export default function SwapUI() {
               value={second}
               onChange={NumberChange}
             />
+            {second ? (
+              <div className="InputDollar">
+                ${(Object.values(twoData)[0].usd * second).toFixed(10)}
+              </div>
+            ) : (
+              ""
+            )}
             {isOpenModal && (
               <SwapModal
                 onClickToggleModal={onClickToggleModal}
@@ -156,7 +195,13 @@ export default function SwapUI() {
 
         {onCheckList() ? (
           <div>
-            <InfoBox>123123</InfoBox>
+            <InfoBox>
+              1 {isCoin[1].symbol} =
+              {(
+                Object.values(twoData)[0].usd / Object.values(oneData)[0].usd
+              ).toFixed(10)}{" "}
+              {isCoin[0].symbol} (${Object.values(twoData)[0].usd.toFixed(10)})
+            </InfoBox>
             <SwapButton onClick={onStart} className="swap">
               스왑
             </SwapButton>
@@ -229,6 +274,16 @@ const CoinBox = styled.div`
     color: #ffffff;
     background: #766c76;
   }
+  .InputDollar {
+    position: relative;
+    bottom: 30px;
+    text-align: left;
+    text-indent: 20px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #e3e1e3;
+    z-index: 10;
+  }
   .arrowDown {
     position: absolute;
     color: #ffffff;
@@ -284,8 +339,8 @@ const NoSwapButton = styled.button`
   font-size: 20px;
   font-weight: bold;
   border-radius: 15px;
-  color: #ffffff;
-  background: #766c76;
+  color: #202124;
+  background: #403c40;
 `;
 
 const InfoBox = styled.div`
