@@ -6,7 +6,12 @@ import { faGear, faArrowDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState, useCallback } from "react";
 
-type Information = { first: undefined | number; second: undefined | number };
+type Information = {
+  first: undefined | number;
+  second: undefined | number;
+  firstcost: number;
+  secondcost: number;
+};
 type CoinInfo = { id: string; symbol: string };
 
 interface GetCoinsPrice {
@@ -25,30 +30,52 @@ export default function SwapUI() {
     { id: "dai", symbol: "DAI" },
     { id: "usd-coin", symbol: "USDC" },
   ]);
-  // 10초마다 refetch
-  const { data: oneData } = useQuery<GetCoinsPrice>(
-    ["coin1"],
-    () => getCoinPrice(isCoin[0].id),
-    { enabled: true, staleTime: 5000, refetchInterval: 10000 }
-  );
-  const { data: twoData } = useQuery<GetCoinsPrice>(
-    ["coin2"],
-    () => getCoinPrice(isCoin[1].id),
-    { enabled: true, staleTime: 5000, refetchInterval: 10000 }
-  );
-
   //input 가격 값들 저장
   const [isNumber, setNumber] = useState<Information>({
     first: undefined,
     second: undefined,
+    firstcost: 0,
+    secondcost: 0,
   });
+  const { first, second, firstcost, secondcost } = isNumber;
+  // 10초마다 refetch
+  const { data: oneData } = useQuery<GetCoinsPrice>(
+    ["coin1"],
+    () => getCoinPrice(isCoin[0].id),
+    {
+      enabled: true,
+      staleTime: 1000,
+      cacheTime: 2000,
+      refetchInterval: 2000,
+      onSuccess: (data) => {
+        setNumber({
+          ...isNumber,
+          ["firstcost"]: Object.values(data)[0].usd,
+        });
+      },
+    }
+  );
+  const { data: twoData } = useQuery<GetCoinsPrice>(
+    ["coin2"],
+    () => getCoinPrice(isCoin[1].id),
+    {
+      enabled: true,
+      staleTime: 1000,
+      cacheTime: 2000,
+      refetchInterval: 2000,
+      onSuccess: (data) => {
+        setNumber({
+          ...isNumber,
+          ["secondcost"]: Object.values(data)[0].usd,
+        });
+      },
+    }
+  );
 
   //모달창 열고 닫기
   const onClickToggleModal = useCallback(() => {
     setOpenModal(!isOpenModal);
   }, [isOpenModal]);
-
-  const { first, second } = isNumber;
 
   //계산식 추가
   const NumberChange = (
@@ -66,13 +93,11 @@ export default function SwapUI() {
             ["second"]: 0,
           });
         } else {
-          cost = Object.values(oneData)[0].usd * Number(e.target.value);
+          cost = firstcost * Number(e.target.value);
           setNumber({
             ...isNumber,
             [e.target.id]: Number(e.target.value),
-            ["second"]: Number(
-              (cost / Object.values(twoData)[0].usd).toFixed(10)
-            ),
+            ["second"]: Number((cost / secondcost).toFixed(10)),
           });
         }
       } else {
@@ -88,13 +113,11 @@ export default function SwapUI() {
             ["first"]: 0,
           });
         } else {
-          cost = Object.values(twoData)[0].usd * Number(e.target.value);
+          cost = secondcost * Number(e.target.value);
           setNumber({
             ...isNumber,
             [e.target.id]: Number(e.target.value),
-            ["first"]: Number(
-              Math.round(cost / Object.values(oneData)[0].usd).toFixed(10)
-            ),
+            ["first"]: Number(Math.round(cost / firstcost).toFixed(10)),
           });
         }
       } else {
@@ -142,7 +165,7 @@ export default function SwapUI() {
             />
             {first ? (
               <div className="InputDollar">
-                ${Number((Object.values(oneData)[0].usd * first).toFixed(10))}
+                ${Number((firstcost * first).toFixed(10))}
               </div>
             ) : (
               ""
@@ -171,7 +194,7 @@ export default function SwapUI() {
             />
             {second ? (
               <div className="InputDollar">
-                ${Number((Object.values(twoData)[0].usd * second).toFixed(10))}
+                ${Number((secondcost * second).toFixed(10))}
               </div>
             ) : (
               ""
@@ -201,13 +224,9 @@ export default function SwapUI() {
           <div>
             <InfoBox>
               1 {isCoin[1].symbol} =
-              {Number(
-                (
-                  Object.values(twoData)[0].usd / Object.values(oneData)[0].usd
-                ).toFixed(10)
-              )}{" "}
-              {isCoin[0].symbol} ($
-              {Number(Object.values(twoData)[0].usd.toFixed(10))})
+              {Number((secondcost / firstcost).toFixed(10))} {isCoin[0].symbol}{" "}
+              ($
+              {Number(secondcost.toFixed(10))})
             </InfoBox>
             <SwapButton onClick={onStart} className="swap">
               스왑

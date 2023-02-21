@@ -11,7 +11,7 @@ type CoinInfo = { id: string; symbol: string };
 interface ModalDefaultType {
   onClickToggleModal: () => void;
   setCoin: React.Dispatch<React.SetStateAction<CoinInfo[]>>;
-  isCoin: Object;
+  isCoin: CoinInfo[];
   children: boolean;
 }
 
@@ -25,7 +25,6 @@ export default function Modal({
   // children === false 아래에 버튼
   const [isText, setText] = useState<string>("");
   const [data, setData] = useState<object[]>([]);
-
   // 시작할 때 목록 불러오기
   useEffect(() => {
     axios
