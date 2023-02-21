@@ -1,7 +1,9 @@
 import styled from "styled-components";
 
 export default function History() {
+  // string으로 localStorage 저장되어있던거 불러오기
   let stringHistory = localStorage.getItem("coin");
+  // array로 localStorage 저장되어있던거 담기
   let arrayHistory: string[] = [];
   if (stringHistory === null) {
   } else {
@@ -29,6 +31,9 @@ const HistoryContainer = styled.div`
   height: 90px;
   border-bottom: 1px solid;
   margin-bottom: 3px;
+  div:hover {
+    background: #5babab;
+  }
 `;
 
 const HistoryContent = styled.div`
@@ -39,6 +44,7 @@ const HistoryContent = styled.div`
   background: #908790;
   margin: 2px;
   height: 30px;
+  cursor: pointer;
 `;
 
 const HistoryText = styled.div`

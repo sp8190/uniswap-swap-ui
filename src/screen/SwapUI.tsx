@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState, useCallback } from "react";
 
 type Information = { first: undefined | number; second: undefined | number };
-type CoinInfo = { name: string; symbol: string };
+type CoinInfo = { id: string; symbol: string };
 
 interface GetCoinsPrice {
   results: CoinsPrice[];
@@ -22,32 +22,35 @@ export default function SwapUI() {
   const [isOpenModal, setOpenModal] = useState<boolean>(false);
   const [isNumModal, setNumModal] = useState<boolean>(false);
   const [isCoin, setCoin] = useState<CoinInfo[]>([
-    { name: "DAI", symbol: "DAI" },
-    { name: "usd-coin", symbol: "USDC" },
+    { id: "dai", symbol: "DAI" },
+    { id: "usd-coin", symbol: "USDC" },
   ]);
-  //빠르게
+  // 10초마다 refetch
   const { data: oneData } = useQuery<GetCoinsPrice>(
     ["coin1"],
-    () => getCoinPrice(isCoin[0].name)
-    // { enabled: true, staleTime: 5000, refetchInterval: 10000 }
+    () => getCoinPrice(isCoin[0].id),
+    { enabled: true, staleTime: 5000, refetchInterval: 10000 }
   );
   const { data: twoData } = useQuery<GetCoinsPrice>(
     ["coin2"],
-    () => getCoinPrice(isCoin[1].name)
-    // { enabled: true, staleTime: 5000, refetchInterval: 10000 }
+    () => getCoinPrice(isCoin[1].id),
+    { enabled: true, staleTime: 5000, refetchInterval: 10000 }
   );
 
+  //input 가격 값들 저장
   const [isNumber, setNumber] = useState<Information>({
     first: undefined,
     second: undefined,
   });
+
+  //모달창 열고 닫기
   const onClickToggleModal = useCallback(() => {
     setOpenModal(!isOpenModal);
   }, [isOpenModal]);
 
   const { first, second } = isNumber;
 
-  //계산식 추가 Object.values(twoData)[0].usd
+  //계산식 추가
   const NumberChange = (
     e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
   ) => {
@@ -95,7 +98,6 @@ export default function SwapUI() {
           });
         }
       } else {
-        console.log(e.target.value);
         return false;
       }
     }
@@ -104,6 +106,8 @@ export default function SwapUI() {
   const onStart = () => {
     alert("준비 중입니다.");
   };
+
+  // 모두 수량이 입력되었을 때 활성화
   const onCheckList = (): boolean => {
     const listComponent = Object(isNumber);
     if (listComponent.first === 0 || listComponent.first === undefined)
@@ -123,7 +127,7 @@ export default function SwapUI() {
           <FontAwesomeIcon
             icon={faGear}
             className="right_icon"
-            onClick={() => alert("준비 중입니다")}
+            onClick={onStart}
           />
         </SwapText>
         <CoinBox>
@@ -138,7 +142,7 @@ export default function SwapUI() {
             />
             {first ? (
               <div className="InputDollar">
-                ${(Object.values(oneData)[0].usd * first).toFixed(10)}
+                ${Number((Object.values(oneData)[0].usd * first).toFixed(10))}
               </div>
             ) : (
               ""
@@ -167,7 +171,7 @@ export default function SwapUI() {
             />
             {second ? (
               <div className="InputDollar">
-                ${(Object.values(twoData)[0].usd * second).toFixed(10)}
+                ${Number((Object.values(twoData)[0].usd * second).toFixed(10))}
               </div>
             ) : (
               ""
@@ -197,10 +201,13 @@ export default function SwapUI() {
           <div>
             <InfoBox>
               1 {isCoin[1].symbol} =
-              {(
-                Object.values(twoData)[0].usd / Object.values(oneData)[0].usd
-              ).toFixed(10)}{" "}
-              {isCoin[0].symbol} (${Object.values(twoData)[0].usd.toFixed(10)})
+              {Number(
+                (
+                  Object.values(twoData)[0].usd / Object.values(oneData)[0].usd
+                ).toFixed(10)
+              )}{" "}
+              {isCoin[0].symbol} ($
+              {Number(Object.values(twoData)[0].usd.toFixed(10))})
             </InfoBox>
             <SwapButton onClick={onStart} className="swap">
               스왑
@@ -213,7 +220,8 @@ export default function SwapUI() {
         )}
       </div>
 
-      <div>Uniswap 사용 가능 : {/* English 버튼 */}</div>
+      <span>Uniswap 사용 가능 : </span>
+      <span className="blue"> English </span>
     </Wrapper>
   );
 }
@@ -228,6 +236,9 @@ const Wrapper = styled.div`
 
     border-radius: 15px;
     background: #908790;
+  }
+  .blue {
+    color: blue;
   }
 `;
 

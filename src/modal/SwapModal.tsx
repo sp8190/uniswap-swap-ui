@@ -7,7 +7,7 @@ import History from "./SearchHistory";
 import axios from "axios";
 import styled from "styled-components";
 
-type CoinInfo = { name: string; symbol: string };
+type CoinInfo = { id: string; symbol: string };
 interface ModalDefaultType {
   onClickToggleModal: () => void;
   setCoin: React.Dispatch<React.SetStateAction<CoinInfo[]>>;
@@ -26,6 +26,7 @@ export default function Modal({
   const [isText, setText] = useState<string>("");
   const [data, setData] = useState<object[]>([]);
 
+  // 시작할 때 목록 불러오기
   useEffect(() => {
     axios
       .get(
@@ -36,33 +37,43 @@ export default function Modal({
       });
   }, []);
 
+  // 검색 할 때 value값 저장
   const TextChange = (
     e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
   ) => {
     setText(e.target.value);
   };
+
+  // 목록에서 코인 누를 시 값 변환
   const ChangeCoin = (e1: string, e2: string) => {
+    // 코인 선택 시 History에 저장
     let todos = localStorage.getItem("coin");
     if (todos === null) {
       let symbol = JSON.stringify([e2]);
       localStorage.setItem("coin", symbol);
     } else {
       let newtodos = JSON.parse(todos);
+      // 중복된 값 제거
       newtodos.push(e2);
-      if (newtodos.length > 7) {
-        newtodos.shift();
+      let newArr = newtodos.filter(
+        (element: string, index: number) => newtodos.indexOf(element) === index
+      );
+
+      if (newArr.length > 7) {
+        newArr.shift();
       }
-      localStorage.setItem("coin", JSON.stringify(newtodos));
+      localStorage.setItem("coin", JSON.stringify(newArr));
     }
+    // 선택한 값 children의 boolean 값으로 확인하여 저장
     if (children === true) {
       setCoin([
-        { name: e1, symbol: e2 },
-        { name: isCoin[1].name, symbol: isCoin[1].symbol },
+        { id: e1, symbol: e2 },
+        { id: isCoin[1].id, symbol: isCoin[1].symbol },
       ]);
     } else {
       setCoin([
-        { name: isCoin[0].name, symbol: isCoin[0].symbol },
-        { name: e1, symbol: e2 },
+        { id: isCoin[0].id, symbol: isCoin[0].symbol },
+        { id: e1, symbol: e2 },
       ]);
     }
   };
@@ -93,12 +104,12 @@ export default function Modal({
             onChange={TextChange}
           />
         </SearchBox>
-        <History></History>
+        <History />
         <CoinList>
           {data
             .filter(
               (coin) =>
-                coin.name.toLowerCase().indexOf(isText) !== -1 ||
+                coin.id.toLowerCase().indexOf(isText) !== -1 ||
                 coin.symbol.toLowerCase().indexOf(isText) !== -1
             )
             .map((coin) => (
@@ -106,14 +117,14 @@ export default function Modal({
                 key={coin.id}
                 className="eachList"
                 onClick={() => {
-                  ChangeCoin(coin.name, coin.symbol.toUpperCase());
+                  ChangeCoin(coin.id, coin.symbol.toUpperCase());
                   if (onClickToggleModal) {
                     onClickToggleModal();
                   }
                 }}
               >
                 <div>{coin.symbol.toUpperCase()}</div>
-                <div>{coin.name}</div>
+                <div>{coin.id}</div>
               </div>
             ))}
         </CoinList>
