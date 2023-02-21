@@ -23,7 +23,7 @@ export default function Navigator() {
   return (
     <>
       <HeaderBlock>
-        <span className="HeaderBlock_item"> Uniswap! </span>
+        <span className="HeaderBlock_item"> Mesher! </span>
       </HeaderBlock>
       <Spacer />
     </>
